@@ -13,3 +13,6 @@ class ALPRDataGenerator(keras.utils.Sequence):
         self.shuffle = shuffle
         self.OutputScale = OutputScale
         self.on_epoch_end()
+
+     def __len__(self):
+        return int(np.ceil(len(self.data) / self.batch_size))
