@@ -24,3 +24,11 @@ class ALPRDataGenerator(keras.utils.Sequence):
         X, y = self.__data_generation(indexes)
 
         return X, y
+     
+
+     def on_epoch_end(self):
+        #self.indexes = list(np.arange(0, len(self.data), 1))
+        self.indexes = list(np.arange(0, len(self.data), 1)) 
+        self.indexes += list(np.random.choice(self.indexes, self.batch_size - len(self.data) % self.batch_size))
+        if self.shuffle == True:
+            np.random.shuffle(self.indexes)
