@@ -41,7 +41,7 @@ class ALPRDataGenerator(keras.utils.Sequence):
             for i, idx in enumerate(indexes):
                 # Store sample
                 XX, llp, ptslist = augment_sample(self.data[idx][0], self.data[idx][1], self.dim)
-                YY = labels2output_map(llp, ptslist, self.dim, self.stride, alfa = 0.5)
+                YY = labels2output_map(llp, ptslist, self.dim, self.stride, alfa = 0.6)
                 X[i,] = XX*self.OutputScale
                 y[i,] = YY
             return X, y
