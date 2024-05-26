@@ -12,3 +12,9 @@ def detect_vechicle(tfnet_yolo, imgcv):
 		if (det['label'] in ['car','bus']):
 			vehicles.append(det)
 	return vehicles
+
+def scan_vehicles(vehicles,  imgcv, wpod_net, lp_threshold):
+	plate = []
+	plateimgs = []
+	if len(vehicles) == 0:
+		vehicles = [{'label': 'car',  'confidence': 1,  'topleft': {'x': 1, 'y': 1}, 'bottomright': {'x': imgcv.shape[1], 'y': imgcv.shape[0]}}]
