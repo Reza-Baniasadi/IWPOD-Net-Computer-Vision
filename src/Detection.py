@@ -24,3 +24,6 @@ def scan_vehicles(vehicles,  imgcv, wpod_net, lp_threshold):
 		brx = car['bottomright']['x'];
 		bry = car['bottomright']['y'];
 		Ivehicle = imgcv[tly:bry, tlx:brx]
+
+		WPODResolution = 416 
+	
