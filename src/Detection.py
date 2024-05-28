@@ -18,3 +18,10 @@ def scan_vehicles(vehicles,  imgcv, wpod_net, lp_threshold):
 	plateimgs = []
 	if len(vehicles) == 0:
 		vehicles = [{'label': 'car',  'confidence': 1,  'topleft': {'x': 1, 'y': 1}, 'bottomright': {'x': imgcv.shape[1], 'y': imgcv.shape[0]}}]
+	for car in vehicles:
+		tlx = car['topleft']['x'];
+		tly = car['topleft']['y'];
+		brx = car['bottomright']['x'];
+		bry = car['bottomright']['y'];
+		Ivehicle = imgcv[tly:bry, tlx:brx]
+	return Ivehicle
