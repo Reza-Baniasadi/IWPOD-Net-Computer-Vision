@@ -28,4 +28,4 @@ def scan_vehicles(vehicles,  imgcv, wpod_net, lp_threshold):
 		WPODResolution = 416 
 		ratio = float(max(Ivehicle.shape[:2]))/min(Ivehicle.shape[:2])
 		side  = int(ratio*288.)
-	
+	    bound_dim = min(side + (side%(2**4)), WPODResolution)
