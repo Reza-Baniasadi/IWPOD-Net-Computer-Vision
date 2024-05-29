@@ -26,4 +26,6 @@ def scan_vehicles(vehicles,  imgcv, wpod_net, lp_threshold):
 		Ivehicle = imgcv[tly:bry, tlx:brx]
 
 		WPODResolution = 416 
+		ratio = float(max(Ivehicle.shape[:2]))/min(Ivehicle.shape[:2])
+
 	
