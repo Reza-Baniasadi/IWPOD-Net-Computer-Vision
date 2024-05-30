@@ -32,3 +32,5 @@ def scan_vehicles(vehicles,  imgcv, wpod_net, lp_threshold):
 		Llp,LlpImgs,_ = detect_lp(wpod_net, im2single(Ivehicle), bound_dim, 2**4, (240,80), lp_threshold)
 		plate.append(Llp)
 		plateimgs.append(LlpImgs)
+	return (plate, plateimgs, vehicles)
+
