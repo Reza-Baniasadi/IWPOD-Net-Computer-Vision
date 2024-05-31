@@ -34,3 +34,8 @@ def scan_vehicles(vehicles,  imgcv, wpod_net, lp_threshold):
 		plateimgs.append(LlpImgs)
 	return (plate, plateimgs, vehicles)
 
+
+def ocr_plates(tfnet_ocr, result,  imgcv, platelist, plateimgslist):
+	listocr = [];
+	listimgs = [];
+	numplates = 0;
