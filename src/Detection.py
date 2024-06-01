@@ -39,3 +39,12 @@ def ocr_plates(tfnet_ocr, result,  imgcv, platelist, plateimgslist):
 	listocr = [];
 	listimgs = [];
 	numplates = 0;
+	for LlpImgs in plateimgslist:
+			if len(LlpImgs):
+				Llp = platelist[numplates]
+				Ilp = LlpImgs[0]
+				Ilp = cv2.cvtColor(Ilp, cv2.COLOR_BGR2GRAY)
+				Ilp = cv2.cvtColor(Ilp, cv2.COLOR_GRAY2BGR)
+				print(Ilp.shape)
+				ptspx = adjust_pts(Llp[0].pts, result[numplates])
+				draw_losangle(imgcv, ptspx, (0, 0, 255), 3)
