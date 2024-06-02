@@ -48,3 +48,5 @@ def ocr_plates(tfnet_ocr, result,  imgcv, platelist, plateimgslist):
 				print(Ilp.shape)
 				ptspx = adjust_pts(Llp[0].pts, result[numplates])
 				draw_losangle(imgcv, ptspx, (0, 0, 255), 3)
+				ocr = tfnet_ocr.return_predict(Ilp * 255.)
+				ocr = nms_darkflow(ocr)
