@@ -50,3 +50,5 @@ def ocr_plates(tfnet_ocr, result,  imgcv, platelist, plateimgslist):
 				draw_losangle(imgcv, ptspx, (0, 0, 255), 3)
 				ocr = tfnet_ocr.return_predict(Ilp * 255.)
 				ocr = nms_darkflow(ocr)
+				ocr.sort(key=lambda x: x['topleft']['x'])
+				lp_str = ''.join([r['label'] for r in ocr])
