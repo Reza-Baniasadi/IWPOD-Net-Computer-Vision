@@ -52,3 +52,7 @@ def ocr_plates(tfnet_ocr, result,  imgcv, platelist, plateimgslist):
 				ocr = nms_darkflow(ocr)
 				ocr.sort(key=lambda x: x['topleft']['x'])
 				lp_str = ''.join([r['label'] for r in ocr])
+				listocr.append(lp_str)
+				listimgs.append(Ilp)
+				numplates = numplates + 1;
+	return listocr, listimgs
