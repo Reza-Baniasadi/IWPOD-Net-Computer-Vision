@@ -62,3 +62,8 @@ def ocr_plates(tfnet_ocr, result,  imgcv, platelist, plateimgslist):
 			# else:
 			# 	cv2.waitKey(); cv2.destroyAllWindows()
 	return listocr, listimgs
+
+def save_print_files(listocr, listimgs, outputdir, rootname):
+	for i in range(0, len(listocr)):
+		ocr = listocr[i]
+		img = listimgs[i]
