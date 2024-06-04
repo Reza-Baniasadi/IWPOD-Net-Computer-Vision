@@ -67,3 +67,18 @@ def save_print_files(listocr, listimgs, outputdir, rootname):
 	for i in range(0, len(listocr)):
 		ocr = listocr[i]
 		img = listimgs[i]
+		if config.SaveTxt:
+			with open(outputdir + '%s_str_%d.txt' % (rootname, i + 1),'w') as f:
+				f.write(ocr + '\n')
+		if config.SaveImages:
+			cv2.imwrite(outputdir + rootname +  '_plate_%d' % (i + 1) + '_ocr.png', img*255.)
+
+
+def run_all(tfnet_yolo, imgcv, wpod_net, lp_threshold, tfnet_ocr, outputdir, rootname):
+		result = detect_vechicle(tfnet_yolo, imgcv)
+		
+	#result = [{'label': 'car',  'confidence': 1,  'topleft': {'x': 1, 'y': 1}, 'bottomright': {'x': imgcv.shape[1], 'y': imgcv.shape[0]}}]
+	platelist, plateimgslist, result = scan_vehicles(result,  imgcv, wpod_net, lp_threshold)
+	#
+	#
+    listocr, listimgs = ocr_plates(tfnet_ocr, result,  imgcv, platelist, plateimgslist)
