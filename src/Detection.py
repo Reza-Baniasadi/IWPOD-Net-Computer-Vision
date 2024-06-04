@@ -55,10 +55,10 @@ def ocr_plates(tfnet_ocr, result,  imgcv, platelist, plateimgslist):
 				listocr.append(lp_str)
 				listimgs.append(Ilp)
 				numplates = numplates + 1;
-			if len(lp_str) < 7:
-				cv2.imshow('Orig', imgcv); 
-			if len(lp_str) > 0:
-				cv2.imshow('OCR', Ilp); cv2.waitKey(); cv2.destroyAllWindows()
-			else:
-				cv2.waitKey(); cv2.destroyAllWindows()
+			# if len(lp_str) < 7:
+			# 	cv2.imshow('Orig', imgcv); 
+			# if len(lp_str) > 0:
+			# 	cv2.imshow('OCR', Ilp); cv2.waitKey(); cv2.destroyAllWindows()
+			# else:
+			# 	cv2.waitKey(); cv2.destroyAllWindows()
 	return listocr, listimgs
