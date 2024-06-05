@@ -82,3 +82,5 @@ def run_all(tfnet_yolo, imgcv, wpod_net, lp_threshold, tfnet_ocr, outputdir, roo
 	#
 	#
     listocr, listimgs = ocr_plates(tfnet_ocr, result,  imgcv, platelist, plateimgslist)
+	save_print_files(listocr, listimgs, outputdir, rootname)
+	return listocr
