@@ -75,19 +75,22 @@ def save_print_files(listocr, listimgs, outputdir, rootname):
 
 
 def run_all(tfnet_yolo, imgcv, wpod_net, lp_threshold, tfnet_ocr, outputdir, rootname):
+
 	result = detect_vechicle(tfnet_yolo, imgcv)
 		
-	#result = [{'label': 'car',  'confidence': 1,  'topleft': {'x': 1, 'y': 1}, 'bottomright': {'x': imgcv.shape[1], 'y': imgcv.shape[0]}}]
 	platelist, plateimgslist, result = scan_vehicles(result,  imgcv, wpod_net, lp_threshold)
-	#
-	#
-    listocr, listimgs = ocr_plates(tfnet_ocr, result,  imgcv, platelist, plateimgslist)
+
+	listocr, listimgs = ocr_plates(tfnet_ocr, result,  imgcv, platelist, plateimgslist)
 	save_print_files(listocr, listimgs, outputdir, rootname)
-	return listocr
+
+	return listocr,listimgs
+
+
+
 
 def SwapCharactersLPMercosul(instring):
 
-	outstring = list(instring);
-	if len(instring) == 7:
-		for i in range(0,3):
-			outstring[i] = imposeLetter(instring[i])
+		outstring = list(instring);
+		if len(instring) == 7:
+			for i in range(0,3):
+				outstring[i] = imposeLetter(instring[i])
