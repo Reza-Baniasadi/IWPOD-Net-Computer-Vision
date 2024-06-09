@@ -89,11 +89,15 @@ def run_all(tfnet_yolo, imgcv, wpod_net, lp_threshold, tfnet_ocr, outputdir, roo
 
 
 def SwapCharactersLPMercosul(instring):
-
-		outstring = list(instring);
-		if len(instring) == 7:
-			for i in range(0,3):
-				outstring[i] = imposeLetter(instring[i])
-			for i in range(3,7):
-				outstring[i] = imposeDigit(instring[i])
-				return "".join(outstring)
+	#
+	#  Format; AAA0A00
+	#
+	outstring = list(instring);
+	if len(instring) == 7:
+		for i in range(0,3):
+			outstring[i] = imposeLetter(instring[i])
+		outstring[3] = imposeDigit(instring[3])
+		outstring[4] = imposeLetter(instring[4])
+		for i in range(5,7):
+			outstring[i] = imposeDigit(instring[i])
+	return "".join(outstring)
