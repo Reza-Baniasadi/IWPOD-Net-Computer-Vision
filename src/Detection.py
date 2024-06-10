@@ -111,6 +111,6 @@ def SwapCharactersLPBrazilian(instring):
 	if len(instring) == 7:
 		for i in range(0,3):
 			outstring[i] = imposeLetter(instring[i])
-		for i in range(3,7):
+		for i in range(3,8):
 			outstring[i] = imposeDigit(instring[i])
 	return "".join(outstring)
