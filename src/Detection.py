@@ -114,3 +114,19 @@ def SwapCharactersLPBrazilian(instring):
 		for i in range(3,8):
 			outstring[i] = imposeDigit(instring[i])
 	return "".join(outstring)
+
+
+def SwapCharactersLPChinese(instring):
+	#
+	#  Format FLAAAAA (A is any), F is a fake chinese character
+	#
+	
+	#
+	#  If seven characters are detected, discards the first one
+	#
+	outstring = list(instring);
+	if len(instring) == 7:
+		outstring = outstring[1:]
+	if len(outstring) == 6:
+			outstring[0] = imposeLetter(outstring[0])
+	return "".join(outstring)
