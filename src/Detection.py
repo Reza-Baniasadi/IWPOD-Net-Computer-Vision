@@ -130,3 +130,13 @@ def SwapCharactersLPChinese(instring):
 	if len(outstring) == 6:
 			outstring[0] = imposeLetter(outstring[0])
 	return "".join(outstring)
+
+
+def imposeLetterString(instring):
+	#
+	#  Transform all characters into letters
+	#
+	outstring = list(instring);
+	for i in range(0, len(instring)):
+		outstring[i] = imposeLetter(instring[i])
+	return "".join(outstring)
