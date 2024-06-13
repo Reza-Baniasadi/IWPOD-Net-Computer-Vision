@@ -134,7 +134,7 @@ def SwapCharactersLPChinese(instring):
 
 def imposeLetterString(instring):
 	#
-	#  Transform all characters into letters
+	#  Transform  characters into letters
 	#
 	outstring = list(instring);
 	for i in range(0, len(instring)):
