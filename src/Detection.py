@@ -140,3 +140,14 @@ def imposeLetterString(instring):
 	for i in range(0, len(instring)):
 		outstring[i] = imposeLetter(instring[i])
 	return "".join(outstring)
+
+
+def imposeLetter(inchar):
+	diglist = '0123456789'
+	#charlist = 'OIZUASGJBR'
+	charlist = 'OIZBASETBS'
+	outchar = inchar
+	if inchar.isdigit():
+		ind = diglist.index(inchar)
+		outchar = charlist[ind]
+	return outchar
