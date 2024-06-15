@@ -144,7 +144,6 @@ def imposeLetterString(instring):
 
 def imposeLetter(inchar):
 	diglist = '0123456789'
-	#charlist = 'OIZUASGJBR'
 	charlist = 'OIZBASETBS'
 	outchar = inchar
 	if inchar.isdigit():
