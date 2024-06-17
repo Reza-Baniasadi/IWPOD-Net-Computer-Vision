@@ -164,3 +164,9 @@ def imposeDigit(inchar):
 def ClassifyPlate(img, ocr):
 
 	Debug = False
+	offset = 4;
+	vminy = []
+	vmaxy = []
+	vminx = []
+	vmaxx = []
+	vheight = []
