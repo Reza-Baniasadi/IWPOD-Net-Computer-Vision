@@ -160,3 +160,7 @@ def imposeDigit(inchar):
 		outchar = diglist[ind]
 	return outchar
 
+
+def ClassifyPlate(img, ocr):
+
+	Debug = False
