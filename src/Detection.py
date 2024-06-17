@@ -170,3 +170,6 @@ def ClassifyPlate(img, ocr):
 	vminx = []
 	vmaxx = []
 	vheight = []
+	for car in ocr:
+		vminy.append(car['topleft']['y']);
+		vmaxy.append(car['bottomright']['y']);
