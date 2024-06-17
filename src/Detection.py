@@ -152,8 +152,6 @@ def imposeLetter(inchar):
 	return outchar
 
 def imposeDigit(inchar):
-	#charlist = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-	#diglist = '48605568113133030451877992'
 	charlist = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 	diglist =  '48006661113191080651011017'
 	outchar = inchar
