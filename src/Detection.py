@@ -176,9 +176,10 @@ def ClassifyPlate(img, ocr):
 		vminx.append(car['topleft']['x']);
 		vmaxx.append(car['bottomright']['x']);
 		vheight.append(vmaxy[-1] - vminy[-1]);
-		if Debug:
-			print(vminy)
-			print(vmaxy)
-			print(vminx)
-			print(vmaxx)
-			print(vheight)
+
+		# if Debug:
+		# 	print(vminy)
+		# 	print(vmaxy)
+		# 	print(vminx)
+		# 	print(vmaxx)
+		# 	print(vheight)
