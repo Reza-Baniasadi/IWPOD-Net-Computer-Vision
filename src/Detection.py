@@ -183,3 +183,5 @@ def ClassifyPlate(img, ocr):
 		# 	print(vminx)
 		# 	print(vmaxx)
 		# 	print(vheight)
+
+		miny = max(offset, min(vminy))
