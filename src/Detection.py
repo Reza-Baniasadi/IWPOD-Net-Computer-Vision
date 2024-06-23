@@ -188,3 +188,7 @@ def ClassifyPlate(img, ocr):
 		minx = max(offset, min(vminx))
 		maxx = min(239 - offset, max(vmaxx))
 		height = sum(vheight) / len(vheight);
+
+		if Debug:
+			print([miny, maxy, minx, maxx, height])
+			imp = img.copy()
