@@ -192,3 +192,6 @@ def ClassifyPlate(img, ocr):
 		if Debug:
 			print([miny, maxy, minx, maxx, height])
 			imp = img.copy()
+
+		u_height =  int(max(1, min(miny, height/2)))
+		l_height = int(max(1, min(u_height/4, 79 - maxy)))
