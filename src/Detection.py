@@ -195,3 +195,6 @@ def ClassifyPlate(img, ocr):
 
 		u_height =  int(max(1, min(miny, height/2)))
 		l_height = int(max(1, min(u_height/4, 79 - maxy)))
+
+		channel = 2;
+		img0 = img[:,:,channel].copy()
