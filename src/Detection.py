@@ -200,3 +200,5 @@ def ClassifyPlate(img, ocr):
 		img0 = img[:,:,channel].copy()
 
 		up_intensity = np.median(img0[(miny - u_height):miny, minx:maxx])
+		middle_intensity = np.median(img0[miny:maxy, minx:maxx])
+		median_intensity = np.median(img0[:, minx:maxx])
