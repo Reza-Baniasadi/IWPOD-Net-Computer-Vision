@@ -207,3 +207,7 @@ def ClassifyPlate(img, ocr):
 			print('Upper:%1.2f   --  Lower:%1.2f -- Middle:%1.2f -- Median %1.2f' %(up_intensity, low_intensity, middle_intensity, median_intensity ))
 			print('Upper:%1.2f   --  Lower:%1.2f -- Median %1.2f' %(up_intensity, low_intensity, median_intensity ))
 			print('Upper/Middle ratio: %1.2f' % (up_intensity/middle_intensity))
+			cv2.rectangle(imp, (minx, miny - u_height), (maxx, miny), (125, 255, 51), thickness=2)
+			cv2.rectangle(imp, (minx, miny), (maxx, maxy), (0, 0, 255), thickness=2)
+			cv2.rectangle(imp, (minx, maxy+1), (maxx, maxy + l_height), (0, 255, 0), thickness=2)
+			cv2.imshow('Placa', imp); 
