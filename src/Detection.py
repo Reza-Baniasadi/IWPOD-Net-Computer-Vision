@@ -202,3 +202,8 @@ def ClassifyPlate(img, ocr):
 		up_intensity = np.median(img0[(miny - u_height):miny, minx:maxx])
 		middle_intensity = np.median(img0[miny:maxy, minx:maxx])
 		median_intensity = np.median(img0[:, minx:maxx])
+
+		if Debug:
+			print('Upper:%1.2f   --  Lower:%1.2f -- Middle:%1.2f -- Median %1.2f' %(up_intensity, low_intensity, middle_intensity, median_intensity ))
+			print('Upper:%1.2f   --  Lower:%1.2f -- Median %1.2f' %(up_intensity, low_intensity, median_intensity ))
+			print('Upper/Middle ratio: %1.2f' % (up_intensity/middle_intensity))
