@@ -211,3 +211,8 @@ def ClassifyPlate(img, ocr):
 			cv2.rectangle(imp, (minx, miny), (maxx, maxy), (0, 0, 255), thickness=2)
 			cv2.rectangle(imp, (minx, maxy+1), (maxx, maxy + l_height), (0, 255, 0), thickness=2)
 			cv2.imshow('Placa', imp); 
+
+			#cv2.rectangle(img0, (minx, miny-u_height), (maxx, miny), (125, 255, 51), thickness=2)
+			#cv2.rectangle(img0, (minx, maxy), (maxx, maxy+l_height), (125, 255, 51), thickness=2)
+			#cv2.rectangle(img0, (0, miny), (240, maxy), (125, 255, 51), thickness=2)
+			#cv2.imshow('Placa', img0); 
