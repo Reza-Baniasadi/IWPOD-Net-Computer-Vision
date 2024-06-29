@@ -216,3 +216,8 @@ def ClassifyPlate(img, ocr):
 			#cv2.rectangle(img0, (minx, maxy), (maxx, maxy+l_height), (125, 255, 51), thickness=2)
 			#cv2.rectangle(img0, (0, miny), (240, maxy), (125, 255, 51), thickness=2)
 			#cv2.imshow('Placa', img0); 
+			if up_intensity < 0.6*middle_intensity:
+				if median_intensity > 1.4*up_intensity:
+					return 'Mercosul'
+			else:
+					return 'Iranian'
