@@ -45,3 +45,15 @@ class ALPRDataGenerator(keras.utils.Sequence):
                 X[i,] = XX*self.OutputScale
                 y[i,] = YY
             return X, y
+     
+
+def __data_generation(self, indexes):
+
+        X = np.empty((self.batch_size, self.dim, self.dim, 3))
+        y = np.empty((self.batch_size, self.dim//self.stride, self.dim//self.stride, 9))
+        for i, idx in enumerate(indexes):
+            XX, llp, ptslist = augment_sample(self.data[idx][0], self.data[idx][1], self.dim)
+            YY = labels2output_map(llp, ptslist, self.dim, self.stride, alfa = 0.5)
+            X[i,] = XX*self.OutputScale
+            y[i,] = YY
+        return X, y
