@@ -58,7 +58,7 @@ def detect_lp_width(model, I,  MAXWIDTH, net_step, out_size, threshold):
 def reconstruct_new(Iorig, I, Y, out_size, threshold=.9):
 
 	net_stride 	= 2**4 
-	side   = ((208. + 40.)/2.)/net_stride 
+	side = ((208. + 40.)/3.)/net_stride 
 
 	Probs = Y[...,0]
 	Affines = Y[...,-6:] 
