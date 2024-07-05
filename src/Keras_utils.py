@@ -53,3 +53,17 @@ def detect_lp_width(model, I,  MAXWIDTH, net_step, out_size, threshold):
 	L,TLps = reconstruct_new (I, Iresized, Yr, out_size, threshold)
 
 	return L,TLps,elapsed
+
+
+def reconstruct_new(Iorig, I, Y, out_size, threshold=.9):
+
+	net_stride 	= 2**4 
+	side   = ((208. + 40.)/2.)/net_stride 
+
+	Probs = Y[...,0]
+	Affines = Y[...,-6:] 
+	rx,ry = Y.shape[:2]
+
+	xx,yy = np.where(Probs>threshold)
+	WH = getWH(I.shape)
+	MN = WH/net_stride
