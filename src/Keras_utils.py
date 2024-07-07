@@ -67,7 +67,7 @@ def reconstruct_new(Iorig, I, Y, out_size, threshold=.9):
 	xx,yy = np.where(Probs>threshold)
 	WH = getWH(I.shape)
 	MN = WH/net_stride
-	vxx = vyy = 0.5 
+	vxx = vyy = 0.4
 	base = lambda vx,vy: np.matrix([[-vx,-vy,1.],[vx,-vy,1.],[vx,vy,1.],[-vx,vy,1.]]).T
 	labels = []
 
