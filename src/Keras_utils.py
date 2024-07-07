@@ -67,3 +67,11 @@ def reconstruct_new(Iorig, I, Y, out_size, threshold=.9):
 	xx,yy = np.where(Probs>threshold)
 	WH = getWH(I.shape)
 	MN = WH/net_stride
+	vxx = vyy = 0.5 
+	base = lambda vx,vy: np.matrix([[-vx,-vy,1.],[vx,-vy,1.],[vx,vy,1.],[-vx,vy,1.]]).T
+	labels = []
+
+	for i in range(len(xx)):
+		y,x = xx[i],yy[i]
+		affine = Affines[y,x]
+		prob = Probs[y,x]
