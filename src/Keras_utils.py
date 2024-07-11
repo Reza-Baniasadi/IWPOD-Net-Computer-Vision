@@ -30,3 +30,26 @@ def load_model(path,custom_objects={},verbose=0):
 	model.load_weights('%s.h5' % path)
 	if verbose: print('Loaded from %s' % path)
 	return model
+
+
+def detect_lp_width(model, I,  MAXWIDTH, net_step, out_size, threshold):
+	
+	factor = min(1, MAXWIDTH/I.shape[1])
+	w,h = (np.array(I.shape[1::-1],dtype=float)*factor).astype(int).tolist()
+	
+	w += (w%net_step!=0)*(net_step - w%net_step)
+	h += (h%net_step!=0)*(net_step - h%net_step)
+
+	Iresized = cv2.resize(I,(w,h), interpolation = cv2.INTER_CUBIC)
+	T = Iresized.copy()
+
+	T = T.reshape((1,T.shape[0],T.shape[1],T.shape[2]))
+
+	start 	= time.time()
+	Yr 		= model.predict(T)
+	Yr 		= np.squeeze(Yr)
+	elapsed = time.time() - start
+
+	L,TLps = reconstruct_new (I, Iresized, Yr, out_size, threshold)
+
+	return L,TLps,elapsed
