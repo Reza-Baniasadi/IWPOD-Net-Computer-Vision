@@ -75,3 +75,31 @@ def reconstruct_new(Iorig, I, Y, out_size, threshold=.9):
 		y,x = xx[i],yy[i]
 		affine = Affines[y,x]
 		prob = Probs[y,x]
+		mn = np.array([float(x) + .5,float(y) + .5])
+
+
+		A = np.reshape(affine,(2,3))
+		A[0,0] = max(A[0,0],0.)
+		A[1,1] = max(A[1,1],0.)
+
+		pts = np.array(A*base(vxx,vyy)) #*alpha
+		pts_MN_center_mn = pts*side
+		pts_MN = pts_MN_center_mn + mn.reshape((2,1))
+
+		pts_prop = pts_MN/MN.reshape((2,1))
+
+
+		labels.append(DLabel(0,pts_prop,prob))
+
+	final_labels = nms(labels,.1)
+	TLps = []  
+
+	if len(final_labels):
+		final_labels.sort(key=lambda x: x.prob(), reverse=True)
+		for i,label in enumerate(final_labels):
+			ptsh 	= np.concatenate((label.pts*getWH(Iorig.shape).reshape((2,1)),np.ones((1,4))))
+			t_ptsh 	= getRectPts(0,0, out_size[0] ,out_size[1])
+			H = find_T_matrix(ptsh, t_ptsh)
+			Ilp = cv2.warpPerspective(Iorig, H, out_size, flags = cv2.INTER_CUBIC, borderValue=.0)
+			TLps.append(Ilp)
+	return final_labels,TLps
