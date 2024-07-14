@@ -23,3 +23,13 @@ class Label:
         def tl(self): return self.__tl
 
         def br(self): return self.__br
+        
+        def tr(self): return np.array([self.__br[0],self.__tl[1]])
+
+        def bl(self): return np.array([self.__tl[0],self.__br[1]])
+
+        def cl(self): return self.__cl
+
+        def area(self): return np.prod(self.wh())
+
+        def prob(self): return self.__prob
