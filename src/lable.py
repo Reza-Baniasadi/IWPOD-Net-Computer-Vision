@@ -71,3 +71,12 @@ class Label:
                     objs.append(label_type(cl,cc-wh/2,cc+wh/2,prob=prob))
 
             return objs
+        
+        def lwrite(file_path,labels,write_probs=True):
+            with open(file_path,'w') as fd:
+                for l in labels:
+                    cc,wh,cl,prob = (l.cc(),l.wh(),l.cl(),l.prob())
+                    if prob != None and write_probs:
+                        fd.write('%d %f %f %f %f %f\n' % (cl,cc[0],cc[1],wh[0],wh[1],prob))
+                    else:
+                        fd.write('%d %f %f %f %f\n' % (cl,cc[0],cc[1],wh[0],wh[1]))
