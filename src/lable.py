@@ -50,3 +50,24 @@ class Label:
 
         def set_prob(self,prob):
             self.__prob = prob
+
+        def lread(file_path,label_type=Label):
+
+            if not isfile(file_path):
+                return []
+
+            objs = []
+            with open(file_path,'r') as fd:
+                for line in fd:
+                    v 		= line.strip().split()
+                    cl 		= int(v[0])
+                    ccx,ccy = float(v[1]),float(v[2])
+                    w,h 	= float(v[3]),float(v[4])
+                    prob 	= float(v[5]) if len(v) == 6 else None
+
+                    cc 	= np.array([ccx,ccy])
+                    wh 	= np.array([w,h])
+
+                    objs.append(label_type(cl,cc-wh/2,cc+wh/2,prob=prob))
+
+            return objs
