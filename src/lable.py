@@ -51,7 +51,7 @@ class Label:
         def set_prob(self,prob):
             self.__prob = prob
 
-        def lread(file_path,label_type=Label):
+        def lread(file_path):
 
             if not isfile(file_path):
                 return []
@@ -68,7 +68,7 @@ class Label:
                     cc 	= np.array([ccx,ccy])
                     wh 	= np.array([w,h])
 
-                    objs.append(label_type(cl,cc-wh/2,cc+wh/2,prob=prob))
+                    objs.append(cl,cc-wh/2,cc+wh/2,prob=prob)
 
             return objs
         
@@ -80,3 +80,5 @@ class Label:
                         fd.write('%d %f %f %f %f %f\n' % (cl,cc[0],cc[1],wh[0],wh[1],prob))
                     else:
                         fd.write('%d %f %f %f %f\n' % (cl,cc[0],cc[1],wh[0],wh[1]))
+        
+ 
