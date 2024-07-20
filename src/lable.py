@@ -80,5 +80,23 @@ class Label:
                         fd.write('%d %f %f %f %f %f\n' % (cl,cc[0],cc[1],wh[0],wh[1],prob))
                     else:
                         fd.write('%d %f %f %f %f\n' % (cl,cc[0],cc[1],wh[0],wh[1]))
+
+
+class Shape():
+
+	def __init__(self,pts=np.zeros((2,0)),max_sides=4,text=''):
+		self.pts = pts
+		self.max_sides = max_sides
+		self.text = text
+
+	def isValid(self):
+		return self.pts.shape[1] > 2
+
+	def write(self,fp):
+		fp.write('%d,' % self.pts.shape[1])
+		ptsarray = self.pts.flatten()
+		fp.write(''.join([('%f,' % value) for value in ptsarray]))
+		fp.write('%s,' % self.text)
+		fp.write('\n')
         
  
