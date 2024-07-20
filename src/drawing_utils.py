@@ -22,7 +22,7 @@ def write2img(Img,label,strg,txt_color=(0,0,0),bg_color=(255,255,255),font_size=
 
 	font = cv2.FONT_HERSHEY_SIMPLEX
 
-	wh_text,v = cv2.getTextSize(strg, font, font_size, 3)
+	wh_text,v = cv2.getTextSize(strg, font, font_size, 4)
 	bl_corner = label.tl()*wh_img
 
 	tl_corner = np.array([bl_corner[0],bl_corner[1]-wh_text[1]])/wh_img
