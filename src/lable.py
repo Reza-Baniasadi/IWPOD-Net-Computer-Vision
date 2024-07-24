@@ -107,4 +107,12 @@ class Shape():
         self.pts 	= np.array([float(value) for value in values]).reshape((2,ss))
         self.text   = text
         
+    def readShapes(path):
+        shapes = []
+        with open(path) as fp:
+            for line in fp:
+                shape = Shape()
+                shape.read(line)
+                shapes.append(shape)
+        return shapes
  
