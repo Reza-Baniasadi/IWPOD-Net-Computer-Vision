@@ -53,7 +53,7 @@ def __data_generation(self, indexes):
         y = np.empty((self.batch_size, self.dim//self.stride, self.dim//self.stride, 9))
         for i, idx in enumerate(indexes):
             XX, llp, ptslist = augment_sample(self.data[idx][0], self.data[idx][1], self.dim)
-            YY = labels2output_map(llp, ptslist, self.dim, self.stride, alfa = 0.6)
+            YY = labels2output_map(llp, ptslist, self.dim, self.stride, alfa = 0.7)
             X[i,] = XX*self.OutputScale
             y[i,] = YY
         return X, y
