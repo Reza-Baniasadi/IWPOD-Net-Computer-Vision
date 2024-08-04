@@ -123,3 +123,4 @@ class Shape():
                     if shape.isValid():
                         shape.write(fp)
  
+    
