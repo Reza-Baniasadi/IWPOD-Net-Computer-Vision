@@ -115,4 +115,11 @@ class Shape():
                 shape.read(line)
                 shapes.append(shape)
         return shapes
+    
+    def writeShapes(path,shapes):
+        if len(shapes):
+            with open(path,'w') as fp:
+                for shape in shapes:
+                    if shape.isValid():
+                        shape.write(fp)
  
