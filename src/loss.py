@@ -15,5 +15,6 @@ def l1(true, pred, szs):
 	b,h,w,ch = szs
 	res = tf.reshape(true-pred, (b,h*w*ch))
 	res = tf.abs(res)
-	res = tf.reduce_sum(res,1)
+	res = tf.reduce_sum(res,2)
 	return res
+
