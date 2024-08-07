@@ -64,7 +64,7 @@ def loc_loss(Ytrue, Ypred):
 		ptsy = tf.reduce_sum(affiney*row,3)
 
 		pts_xy = tf.stack([ptsx,ptsy],3)
-		# pts = (tf.concat([pts,pts_xy],3))``
+		# pts = (tf.concat([pts,pts_xy],3))
 
 	flags = tf.reshape(obj_probs_true, (b,h,w,1))
 	res   =  1.0*l1(pts_true*flags, pts*flags, (b, h, w, 4*2))
