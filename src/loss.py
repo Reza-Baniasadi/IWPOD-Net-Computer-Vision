@@ -69,3 +69,9 @@ def loc_loss(Ytrue, Ypred):
 	flags = tf.reshape(obj_probs_true, (b,h,w,1))
 	res   =  1.0*l1(pts_true*flags, pts*flags, (b, h, w, 4*2))
 	return res
+
+def iwpodnet_loss(Ytrue, Ypred):
+
+	wclas = 0.5
+	wloc = 0.5
+	return wloc*loc_loss(Ytrue, Ypred) + wclas*clas_loss(Ytrue, Ypred)
