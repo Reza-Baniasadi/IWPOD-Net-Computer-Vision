@@ -67,6 +67,5 @@ def loc_loss(Ytrue, Ypred):
 		pts = (tf.concat([pts,pts_xy],3))
 
 	flags = tf.reshape(obj_probs_true, (b,h,w,1))
-	#dimmax = 13
 	res   =  1.0*l1(pts_true*flags, pts*flags, (b, h, w, 4*2))
 	return res
