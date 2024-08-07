@@ -18,3 +18,21 @@ def l1(true, pred, szs):
 	res = tf.reduce_sum(res,2)
 	return res
 
+
+def clas_loss(Ytrue, Ypred):
+
+	wtrue = 0.5  
+	wfalse = 0.5
+	b = tf.shape(Ytrue)[0]
+	h = tf.shape(Ytrue)[1]
+	w = tf.shape(Ytrue)[2]
+
+	obj_probs_true = Ytrue[...,0]
+	obj_probs_pred = Ypred[...,0]
+
+	non_obj_probs_true = 1. - Ytrue[...,0]
+	non_obj_probs_pred = 1 - Ypred[...,0]
+
+	res  = wtrue*logloss(obj_probs_true,obj_probs_pred,(b,h,w,1))
+	res  += wfalse*logloss(non_obj_probs_true,non_obj_probs_pred,(b,h,w,1))
+	return res
