@@ -21,8 +21,8 @@ def l1(true, pred, szs):
 
 def clas_loss(Ytrue, Ypred):
 
-	wtrue = 0.5  
-	wfalse = 0.5
+	wtrue = 0.6 
+	wfalse = 0.6
 	b = tf.shape(Ytrue)[0]
 	h = tf.shape(Ytrue)[1]
 	w = tf.shape(Ytrue)[2]
