@@ -21,3 +21,17 @@ def find_T_matrix(pts,t_pts):
 	H = V[-1,:].reshape((3,3))
 
 	return H
+
+
+def randomPerturbationPts(pts, alfa = 0.02):
+
+	signs = np.array( [[-1,1,1,-1], [-1,-1,1,1]] )
+	sides = []
+	pts2 = np.zeros((2,4))
+	for i in range(4):
+		sides.append(np.linalg.norm( pts[:,i] - pts[:,(i + 1) %4] ) )
+	
+	scale = np.array( [(sides[0] + sides[2])/2*alfa,  (sides[1] + sides[3])/2*alfa])
+	for i in range(4):
+		pts2[:,i] = pts[:, i] + np.random.rand(2)*signs[:, i]*scale
+	return pts2
