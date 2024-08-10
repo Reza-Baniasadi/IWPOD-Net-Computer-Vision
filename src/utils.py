@@ -35,3 +35,11 @@ def randomPerturbationPts(pts, alfa = 0.02):
 	for i in range(4):
 		pts2[:,i] = pts[:, i] + np.random.rand(2)*signs[:, i]*scale
 	return pts2
+
+
+def CropWarpImage(img, pts, outsize):
+	t_ptsh = getRectPts(0,0,outsize[0], outsize[1])
+	ptsh = np.concatenate((pts, np.ones((1,4))))
+	H = find_T_matrix(ptsh, t_ptsh)
+	Ilp = cv2.warpPerspective(img, H, outsize, flags = cv2.INTER_CUBIC + cv2.WARP_INVERSE_MAP, borderValue=.0)
+	return Ilp
