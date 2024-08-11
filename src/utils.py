@@ -43,3 +43,6 @@ def CropWarpImage(img, pts, outsize):
 	H = find_T_matrix(ptsh, t_ptsh)
 	Ilp = cv2.warpPerspective(img, H, outsize, flags = cv2.INTER_CUBIC + cv2.WARP_INVERSE_MAP, borderValue=.0)
 	return Ilp
+
+def getRectPts(tlx,tly,brx,bry):
+	return np.matrix([[tlx,brx,brx,tlx],[tly,tly,bry,bry],[1.,1.,1.,1.]],dtype=float)
