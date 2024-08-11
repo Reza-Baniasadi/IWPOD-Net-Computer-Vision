@@ -45,4 +45,4 @@ def CropWarpImage(img, pts, outsize):
 	return Ilp
 
 def getRectPts(tlx,tly,brx,bry):
-	return np.matrix([[tlx,brx,brx,tlx],[tly,tly,bry,bry],[1.,1.,1.,1.]],dtype=float)
+	return np.matrix([[tlx,brx,brx,tlx],[tly,tly,bry,bry],[1.,1.,1.,1.]],dtype=int)
