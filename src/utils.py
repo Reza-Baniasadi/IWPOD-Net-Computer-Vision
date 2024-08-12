@@ -54,13 +54,13 @@ def perspective_transform(wh,angles=np.array([0.,0.,0.]),zcop=1000., dpp=1000.):
 	a = rads[1]; Ry = np.matrix([[cos(a), 0, -sin(a)]	, [0, 1, 0]				, [sin(a), 0, cos(a)]	])
 	a = rads[2]; Rz = np.matrix([[cos(a), sin(a), 0]	, [-sin(a), cos(a), 0]	, [0, 0, 1]				])
 
-	R = Rx*Ry*Rz;
+	R = Rx*Ry*Rz
 
 	(w,h) = tuple(wh)
 	xyz = np.matrix([[0,0,w,w],[0,h,0,h],[0,0,0,0]])
 	hxy = np.matrix([[0,0,w,w],[0,h,0,h],[1,1,1,1]])
 
-	xyz = xyz - np.matrix([[w],[h],[0]])/2.
+	xyz = xyz - np.matrix([[w],[h],[0]])/2
 	xyz = R*xyz
 
 	xyz = xyz - np.matrix([[0],[0],[zcop]])
