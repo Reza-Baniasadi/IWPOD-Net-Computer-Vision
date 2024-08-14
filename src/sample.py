@@ -28,3 +28,6 @@ def random_crop(img, width, height):
 	bottom = int(np.random.rand(1)*(or_width - width))
 	crop = img[top:(top+height), bottom:(bottom+width),:]
 	return crop
+
+def GetCentroid(pts):
+	return np.mean(pts, 1);
