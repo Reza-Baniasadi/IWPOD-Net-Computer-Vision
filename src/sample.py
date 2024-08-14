@@ -20,3 +20,11 @@ if UseBG:
 		factor = max(1, dim0/min(img.shape[0:2]))
 		img = cv2.resize(img, (0,0), fx = factor, fy = factor).astype('float32')/255
 		bgimages.append(img)
+		
+def random_crop(img, width, height):
+	or_height = img.shape[0]
+	or_width = img.shape[1]
+	top = int(np.random.rand(1)*(or_height - height))
+	bottom = int(np.random.rand(1)*(or_width - width))
+	crop = img[top:(top+height), bottom:(bottom+width),:]
+	return crop
