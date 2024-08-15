@@ -30,4 +30,11 @@ def random_crop(img, width, height):
 	return crop
 
 def GetCentroid(pts):
-	return np.mean(pts, 1);
+	return np.mean(pts, 1)
+
+
+def ShrinkQuadrilateral(pts, alpha=0.75):
+
+	centroid = GetCentroid(pts)
+	temp = centroid + alpha * (pts.T - centroid)
+	return temp.T
