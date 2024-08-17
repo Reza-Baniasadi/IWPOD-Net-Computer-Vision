@@ -38,3 +38,11 @@ def ShrinkQuadrilateral(pts, alpha=0.75):
 	centroid = GetCentroid(pts)
 	temp = centroid + alpha * (pts.T - centroid)
 	return temp.T
+
+def LinePolygonEdges(pts):
+	lines = []
+	for i in range(4):
+		x1 = np.hstack((pts[:, i], 1))
+		x2 = np.hstack((pts[:, (i + 1) % 4], 1))
+		lines.append(np.cross(x1, x2))
+	return lines
