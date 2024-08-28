@@ -1,59 +1,66 @@
 import numpy as np
-
 from tensorflow import keras
 from src.sampler import augment_sample, labels2output_map
 
-class ALPRDataGenerator(keras.utils.Sequence):
-     def __init__(self, data, batch_size=32, dim =  208, stride = 16, shuffle=True, OutputScale = 1.0):
-        'Initialization'
-        self.dim = dim
+class LicensePlateBatchGenerator(keras.utils.Sequence):
+    """
+    Custom data generator for ALPR.
+    Applies augmentation and maps labels to output heatmaps.
+    """
+
+    def __init__(self, samples, batch_count=32, img_dimension=208, stride=16, shuffle_data=True, scale_factor=1.0):
+        """
+        Initialization
+        """
+        self.samples = samples
+        self.batch_count = batch_count
+        self.img_dimension = img_dimension
         self.stride = stride
-        self.batch_size = batch_size
-        self.data = data
-        self.shuffle = shuffle
-        self.OutputScale = OutputScale
-        self.on_epoch_end()
+        self.shuffle_data = shuffle_data
+        self.scale_factor = scale_factor
+        self._prepare_index_map()
 
-     def __len__(self):
-        return int(np.ceil(len(self.data) / self.batch_size))
-     
-     def __getitem__(self, index):
-		
-        indexes = self.indexes[index*self.batch_size:(index+1)*self.batch_size]
+    def __len__(self):
+        """Total number of batches"""
+        return int(np.ceil(len(self.samples) / self.batch_count))
 
-        X, y = self.__data_generation(indexes)
+    def get_batch(self, batch_number):
+        """Public method to get a batch"""
+        selected_indexes = self.index_map[batch_number * self.batch_count:(batch_number + 1) * self.batch_count]
+        imgs, targets = self._assemble_batch(selected_indexes)
+        return imgs, targets
 
-        return X, y
-     
+    def shuffle_indexes(self):
+        """Shuffle the indexes, call at epoch end"""
+        self._prepare_index_map()
 
-     def on_epoch_end(self):
-        #self.indexes = list(np.arange(0, len(self.data), 1))
-        self.indexes = list(np.arange(0, len(self.data), 1)) 
-        self.indexes += list(np.random.choice(self.indexes, self.batch_size - len(self.data) % self.batch_size))
-        if self.shuffle == True:
-            np.random.shuffle(self.indexes)
+    # ---------- Private methods ----------
+    def _prepare_index_map(self):
+        """Prepare and shuffle index map for batching"""
+        self.index_map = list(np.arange(len(self.samples)))
 
-     def __data_generation(self, indexes):
+        remainder = self.batch_count - len(self.samples) % self.batch_count
+        if remainder != self.batch_count:
+            self.index_map += list(np.random.choice(self.index_map, remainder))
 
-            X = np.empty((self.batch_size, self.dim, self.dim, 3))
-            y = np.empty((self.batch_size, self.dim//self.stride, self.dim//self.stride, 9))
-            # Generate data
-            for i, idx in enumerate(indexes):
-                # Store sample
-                XX, llp, ptslist = augment_sample(self.data[idx][0], self.data[idx][1], self.dim)
-                YY = labels2output_map(llp, ptslist, self.dim, self.stride, alfa = 0.7)
-                X[i,] = XX*self.OutputScale
-                y[i,] = YY
-            return X, y
-     
+        if self.shuffle_data:
+            np.random.shuffle(self.index_map)
 
-def __data_generation(self, indexes):
+    def _assemble_batch(self, indexes):
+        """Create batch arrays of images and heatmaps"""
+        imgs = np.empty((self.batch_count, self.img_dimension, self.img_dimension, 3), dtype=np.float32)
+        heatmaps = np.empty((self.batch_count,
+                             self.img_dimension // self.stride,
+                             self.img_dimension // self.stride,
+                             9), dtype=np.float32)
 
-        X = np.empty((self.batch_size, self.dim, self.dim, 3))
-        y = np.empty((self.batch_size, self.dim//self.stride, self.dim//self.stride, 9))
         for i, idx in enumerate(indexes):
-            XX, llp, ptslist = augment_sample(self.data[idx][0], self.data[idx][1], self.dim)
-            YY = labels2output_map(llp, ptslist, self.dim, self.stride, alfa = 0.7)
-            X[i,] = XX*self.OutputScale
-            y[i,] = YY
-        return X, y
+            augmented_img, label_points, points_list = augment_sample(
+                self.samples[idx][0], self.samples[idx][1], self.img_dimension
+            )
+            heatmap = labels2output_map(label_points, points_list,
+                                        self.img_dimension, self.stride, alfa=0.7)
+            imgs[i] = augmented_img * self.scale_factor
+            heatmaps[i] = heatmap
+
+        return imgs, heatmaps
