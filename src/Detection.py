@@ -1,223 +1,181 @@
 import numpy as np
 import cv2
-from src.keras_utils 	import detect_lp
-from src.utils 			import im2single, nms_darkflow, nms_darkflow_target, adjust_pts, print_digits
-from src.drawing_utils	import draw_losangle
+from src.keras_utils import detect_lp
+from src.utils import im2single, nms_darkflow, adjust_pts
+from src.drawing_utils import draw_losangle
 
 
-def detect_vechicle(tfnet_yolo, imgcv):
-	result = tfnet_yolo.return_predict(imgcv)
-	vehicles = []
-	for det in result:
-		if (det['label'] in ['car','bus']):
-			vehicles.append(det)
-	return vehicles
-
-def scan_vehicles(vehicles,  imgcv, wpod_net, lp_threshold):
-	plate = []
-	plateimgs = []
-	if len(vehicles) == 0:
-		vehicles = [{'label': 'car',  'confidence': 1,  'topleft': {'x': 1, 'y': 1}, 'bottomright': {'x': imgcv.shape[1], 'y': imgcv.shape[0]}}]
-	for car in vehicles:
-		tlx = car['topleft']['x'];
-		tly = car['topleft']['y'];
-		brx = car['bottomright']['x'];
-		bry = car['bottomright']['y'];
-		Ivehicle = imgcv[tly:bry, tlx:brx]
-
-		WPODResolution = 416 
-		ratio = float(max(Ivehicle.shape[:2]))/min(Ivehicle.shape[:2])
-		side  = int(ratio*288.)
-		bound_dim = min(side + (side%(2**4)), WPODResolution)
-		Llp,LlpImgs,_ = detect_lp(wpod_net, im2single(Ivehicle), bound_dim, 2**4, (240,80), lp_threshold)
-		plate.append(Llp)
-		plateimgs.append(LlpImgs)
-	return (plate, plateimgs, vehicles)
+# ---------------- Vehicle Detection -----------------
+def detect_cars(yolo_model, image):
+    """
+    Detect cars and buses in an image using YOLO
+    """
+    detections = yolo_model.return_predict(image)
+    cars = [det for det in detections if det['label'] in ['car', 'bus']]
+    return cars
 
 
-def ocr_plates(tfnet_ocr, result,  imgcv, platelist, plateimgslist):
-	listocr = [];
-	listimgs = [];
-	numplates = 0;
-	for LlpImgs in plateimgslist:
-			if len(LlpImgs):
-				Llp = platelist[numplates]
-				Ilp = LlpImgs[0]
-				Ilp = cv2.cvtColor(Ilp, cv2.COLOR_BGR2GRAY)
-				Ilp = cv2.cvtColor(Ilp, cv2.COLOR_GRAY2BGR)
-				print(Ilp.shape)
-				ptspx = adjust_pts(Llp[0].pts, result[numplates])
-				draw_losangle(imgcv, ptspx, (0, 0, 255), 3)
-				ocr = tfnet_ocr.return_predict(Ilp * 255.)
-				ocr = nms_darkflow(ocr)
-				ocr.sort(key=lambda x: x['topleft']['x'])
-				lp_str = ''.join([r['label'] for r in ocr])
-				listocr.append(lp_str)
-				listimgs.append(Ilp)
-				numplates = numplates + 1;
-			# if len(lp_str) < 7:
-			# 	cv2.imshow('Orig', imgcv); 
-			# if len(lp_str) > 0:
-			# 	cv2.imshow('OCR', Ilp); cv2.waitKey(); cv2.destroyAllWindows()
-			# else:
-			# 	cv2.waitKey(); cv2.destroyAllWindows()
-	return listocr, listimgs
+# ---------------- License Plate Extraction -----------------
+def extract_license_plates(cars, image, wpod_model, lp_threshold):
+    """
+    Crop license plates from detected vehicles
+    """
+    plates, plate_images = [], []
 
-def save_print_files(listocr, listimgs, outputdir, rootname):
-	for i in range(0, len(listocr)):
-		ocr = listocr[i]
-		img = listimgs[i]
-		if config.SaveTxt:
-			with open(outputdir + '%s_str_%d.txt' % (rootname, i + 1),'w') as f:
-				f.write(ocr + '\n')
-		if config.SaveImages:
-			cv2.imwrite(outputdir + rootname +  '_plate_%d' % (i + 1) + '_ocr.png', img*255.)
+    if len(cars) == 0:
+        cars = [{'label': 'car', 'confidence': 1,
+                 'topleft': {'x': 1, 'y': 1},
+                 'bottomright': {'x': image.shape[1], 'y': image.shape[0]}}]
+
+    for car in cars:
+        x1 = car['topleft']['x']
+        y1 = car['topleft']['y']
+        x2 = car['bottomright']['x']
+        y2 = car['bottomright']['y']
+
+        vehicle_img = image[y1:y2, x1:x2]
+
+        WPOD_RES = 416
+        ratio = float(max(vehicle_img.shape[:2])) / min(vehicle_img.shape[:2])
+        side = int(ratio * 288)
+        bound_dim = min(side + (side % (2 ** 4)), WPOD_RES)
+
+        Llp, LlpImgs, _ = detect_lp(
+            wpod_model, im2single(vehicle_img), bound_dim, 2 ** 4, (240, 80), lp_threshold
+        )
+
+        plates.append(Llp)
+        plate_images.append(LlpImgs)
+
+    return plates, plate_images, cars
 
 
-def run_all(tfnet_yolo, imgcv, wpod_net, lp_threshold, tfnet_ocr, outputdir, rootname):
+# ---------------- OCR Recognition -----------------
+def recognize_plates(ocr_model, cars, image, plate_list, plate_imgs_list):
+    recognized_texts = []
+    processed_imgs = []
+    plate_counter = 0
 
-	result = detect_vechicle(tfnet_yolo, imgcv)
-		
-	platelist, plateimgslist, result = scan_vehicles(result,  imgcv, wpod_net, lp_threshold)
+    for lp_imgs in plate_imgs_list:
+        if len(lp_imgs):
+            plate = plate_list[plate_counter]
+            lp_img = lp_imgs[0]
+            lp_img = cv2.cvtColor(lp_img, cv2.COLOR_BGR2GRAY)
+            lp_img = cv2.cvtColor(lp_img, cv2.COLOR_GRAY2BGR)
 
-	listocr, listimgs = ocr_plates(tfnet_ocr, result,  imgcv, platelist, plateimgslist)
-	save_print_files(listocr, listimgs, outputdir, rootname)
+            points = adjust_pts(plate[0].pts, cars[plate_counter])
+            draw_losangle(image, points, (0, 0, 255), 3)
 
-	return listocr,listimgs
+            ocr_results = ocr_model.return_predict(lp_img * 255.)
+            ocr_results = nms_darkflow(ocr_results)
+            ocr_results.sort(key=lambda x: x['topleft']['x'])
 
+            lp_str = ''.join([r['label'] for r in ocr_results])
+            recognized_texts.append(lp_str)
+            processed_imgs.append(lp_img)
+            plate_counter += 1
 
-
-
-def SwapCharactersLPMercosul(instring):
-	#
-	#  Format; AAA0A00
-	#
-	outstring = list(instring);
-	if len(instring) == 7:
-		for i in range(0,3):
-			outstring[i] = imposeLetter(instring[i])
-		outstring[3] = imposeDigit(instring[3])
-		outstring[4] = imposeLetter(instring[4])
-		for i in range(5,7):
-			outstring[i] = imposeDigit(instring[i])
-	return "".join(outstring)
-
-
-def SwapCharactersLPBrazilian(instring):
-	#
-	#  Format AAA0000
-	#
-	outstring = list(instring);
-	if len(instring) == 7:
-		for i in range(0,3):
-			outstring[i] = imposeLetter(instring[i])
-		for i in range(3,8):
-			outstring[i] = imposeDigit(instring[i])
-	return "".join(outstring)
+    return recognized_texts, processed_imgs
 
 
-def SwapCharactersLPChinese(instring):
-	#
-	#  Format FLAAAAA (A is any), F is a fake chinese character
-	#
-	
-	#
-	#  If seven characters are detected, discards the first one
-	#
-	outstring = list(instring);
-	if len(instring) == 7:
-		outstring = outstring[1:]
-	if len(outstring) == 6:
-			outstring[0] = imposeLetter(outstring[0])
-	return "".join(outstring)
+# ---------------- Save Results -----------------
+def save_plate_outputs(recognized_texts, processed_imgs, output_dir, root_name, save_txt=True, save_images=True):
+    for i, (lp_str, lp_img) in enumerate(zip(recognized_texts, processed_imgs)):
+        if save_txt:
+            with open(f"{output_dir}{root_name}_str_{i+1}.txt", 'w') as f:
+                f.write(lp_str + '\n')
+        if save_images:
+            cv2.imwrite(f"{output_dir}{root_name}_plate_{i+1}_ocr.png", lp_img * 255.)
 
 
-def imposeLetterString(instring):
-	#
-	#  Transform  characters into letters
-	#
-	outstring = list(instring);
-	for i in range(0, len(instring)):
-		outstring[i] = imposeLetter(instring[i])
-	return "".join(outstring)
+# ---------------- Complete Pipeline -----------------
+def process_image_pipeline(yolo_model, image, wpod_model, lp_threshold, ocr_model, output_dir, root_name):
+    cars = detect_cars(yolo_model, image)
+    plates, plate_imgs, cars = extract_license_plates(cars, image, wpod_model, lp_threshold)
+    recognized_texts, processed_imgs = recognize_plates(ocr_model, cars, image, plates, plate_imgs)
+    save_plate_outputs(recognized_texts, processed_imgs, output_dir, root_name)
+    return recognized_texts, processed_imgs
 
 
-def imposeLetter(inchar):
-	diglist = '0123456789'
-	charlist = 'OIZBASETBS'
-	outchar = inchar
-	if inchar.isdigit():
-		ind = diglist.index(inchar)
-		outchar = charlist[ind]
-	return outchar
-
-def imposeDigit(inchar):
-	charlist = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-	diglist =  '48006661113191080651011017'
-	outchar = inchar
-	if inchar.isalpha():
-		ind = charlist.index(inchar)
-		outchar = diglist[ind]
-	return outchar
+# ---------------- Plate Character Formatting -----------------
+def format_plate_mercosul(lp_str):
+    out = list(lp_str)
+    if len(lp_str) == 7:
+        for i in range(0, 3):
+            out[i] = replace_with_letter(out[i])
+        out[3] = replace_with_digit(out[3])
+        out[4] = replace_with_letter(out[4])
+        for i in range(5, 7):
+            out[i] = replace_with_digit(out[i])
+    return ''.join(out)
 
 
-def ClassifyPlate(img, ocr):
+def format_plate_brazilian(lp_str):
+    out = list(lp_str)
+    if len(lp_str) == 7:
+        for i in range(0, 3):
+            out[i] = replace_with_letter(out[i])
+        for i in range(3, 7):
+            out[i] = replace_with_digit(out[i])
+    return ''.join(out)
 
-	Debug = False
-	offset = 4;
-	vminy = []
-	vmaxy = []
-	vminx = []
-	vmaxx = []
-	vheight = []
-	for car in ocr:
-		vminy.append(car['topleft']['y']);
-		vmaxy.append(car['bottomright']['y']);
-		vminx.append(car['topleft']['x']);
-		vmaxx.append(car['bottomright']['x']);
-		vheight.append(vmaxy[-1] - vminy[-1]);
 
-		# if Debug:
-		# 	print(vminy)
-		# 	print(vmaxy)
-		# 	print(vminx)
-		# 	print(vmaxx)
-		# 	print(vheight)
+def format_plate_chinese(lp_str):
+    out = list(lp_str)
+    if len(out) == 7:
+        out = out[1:]
+    if len(out) == 6:
+        out[0] = replace_with_letter(out[0])
+    return ''.join(out)
 
-		miny = max(offset, min(vminy))
-		minx = max(offset, min(vminx))
-		maxx = min(239 - offset, max(vmaxx))
-		height = sum(vheight) / len(vheight);
 
-		if Debug:
-			print([miny, maxy, minx, maxx, height])
-			imp = img.copy()
+def impose_letters(lp_str):
+    return ''.join([replace_with_letter(c) for c in lp_str])
 
-		u_height =  int(max(1, min(miny, height/2)))
-		l_height = int(max(1, min(u_height/4, 79 - maxy)))
 
-		channel = 2;
-		img0 = img[:,:,channel].copy()
+def replace_with_letter(c):
+    digits = '0123456789'
+    letters = 'OIZBASETBS'
+    return letters[digits.index(c)] if c.isdigit() else c
 
-		up_intensity = np.median(img0[(miny - u_height):miny, minx:maxx])
-		middle_intensity = np.median(img0[miny:maxy, minx:maxx])
-		median_intensity = np.median(img0[:, minx:maxx])
 
-		if Debug:
-			print('Upper:%1.2f   --  Lower:%1.2f -- Middle:%1.2f -- Median %1.2f' %(up_intensity, low_intensity, middle_intensity, median_intensity ))
-			print('Upper:%1.2f   --  Lower:%1.2f -- Median %1.2f' %(up_intensity, low_intensity, median_intensity ))
-			print('Upper/Middle ratio: %1.2f' % (up_intensity/middle_intensity))
-			cv2.rectangle(imp, (minx, miny - u_height), (maxx, miny), (125, 255, 51), thickness=2)
-			cv2.rectangle(imp, (minx, miny), (maxx, maxy), (0, 0, 255), thickness=2)
-			cv2.rectangle(imp, (minx, maxy+1), (maxx, maxy + l_height), (0, 255, 0), thickness=2)
-			cv2.imshow('Placa', imp); 
+def replace_with_digit(c):
+    letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    digits = '48006661113191080651011017'
+    return digits[letters.index(c)] if c.isalpha() else c
 
-			#cv2.rectangle(img0, (minx, miny-u_height), (maxx, miny), (125, 255, 51), thickness=2)
-			#cv2.rectangle(img0, (minx, maxy), (maxx, maxy+l_height), (125, 255, 51), thickness=2)
-			#cv2.rectangle(img0, (0, miny), (240, maxy), (125, 255, 51), thickness=2)
-			#cv2.imshow('Placa', img0); 
-			if up_intensity < 0.6*middle_intensity:
-				if median_intensity > 1.4*up_intensity:
-					return 'Mercosul'
-			else:
-					return 'Iranian'
+
+# ---------------- Plate Classification -----------------
+def classify_plate_type(image, ocr_boxes):
+    """
+    Determine the type of license plate (Mercosul / Iranian) based on intensity analysis
+    """
+    offset = 4
+    min_y, max_y, min_x, max_x, heights = [], [], [], [], []
+
+    for box in ocr_boxes:
+        min_y.append(box['topleft']['y'])
+        max_y.append(box['bottomright']['y'])
+        min_x.append(box['topleft']['x'])
+        max_x.append(box['bottomright']['x'])
+        heights.append(max_y[-1] - min_y[-1])
+
+    min_y_val = max(offset, min(min_y))
+    min_x_val = max(offset, min(min_x))
+    max_x_val = min(239 - offset, max(max_x))
+    avg_height = sum(heights) / len(heights)
+
+    channel = 2
+    img_channel = image[:, :, channel].copy()
+    u_height = int(max(1, min(min_y_val, avg_height / 2)))
+    l_height = int(max(1, min(u_height / 4, 79 - max(max_y))))
+
+    up_intensity = np.median(img_channel[(min_y_val - u_height):min_y_val, min_x_val:max_x_val])
+    middle_intensity = np.median(img_channel[min_y_val:max(max_y), min_x_val:max_x_val])
+    median_intensity = np.median(img_channel[:, min_x_val:max_x_val])
+
+    if up_intensity < 0.6 * middle_intensity:
+        if median_intensity > 1.4 * up_intensity:
+            return 'Mercosul'
+    else:
+        return 'Iranian'
