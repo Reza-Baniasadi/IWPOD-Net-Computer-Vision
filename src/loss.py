@@ -1,77 +1,107 @@
 import tensorflow as tf
-from typing import Any
+from typing import Tuple
 
 
-def logloss(Ptrue, Pred, szs, eps=10e-10):
-	b,h,w,ch = szs
-	Pred = tf.clip_by_value(Pred, eps, 1.0 - eps)
-	Pred = -tf.math.log(Pred)
-	Pred = Pred*Ptrue
-	Pred = tf.reshape(Pred, (b, h*w*ch))
-	Pred = tf.reduce_sum(Pred,1)
-	return Pred
-
-def l1(true, pred, szs):
-	b,h,w,ch = szs
-	res = tf.reshape(true-pred, (b,h*w*ch))
-	res = tf.abs(res)
-	res = tf.reduce_sum(res,2)
-	return res
+# ---------------- Utility Loss Functions -----------------
+def clamp_tensor(tensor: tf.Tensor, epsilon: float = 1e-10) -> tf.Tensor:
+    """
+    Clamp tensor values to avoid log(0)
+    """
+    return tf.clip_by_value(tensor, epsilon, 1.0 - epsilon)
 
 
-def clas_loss(Ytrue, Ypred):
-
-	wtrue = 0.6 
-	wfalse = 0.6
-	b = tf.shape(Ytrue)[0]
-	h = tf.shape(Ytrue)[1]
-	w = tf.shape(Ytrue)[2]
-
-	obj_probs_true = Ytrue[...,0]
-	obj_probs_pred = Ypred[...,0]
-
-	non_obj_probs_true = 1. - Ytrue[...,0]
-	non_obj_probs_pred = 1 - Ypred[...,0]
-
-	res  = wtrue*logloss(obj_probs_true,obj_probs_pred,(b,h,w,1))
-	res  += wfalse*logloss(non_obj_probs_true,non_obj_probs_pred,(b,h,w,1))
-	return res
+def compute_log_prob_loss(true_probs: tf.Tensor, predicted_probs: tf.Tensor, tensor_shape: Tuple[int, int, int, int]) -> tf.Tensor:
+    """
+    Compute negative log likelihood loss for per-pixel classification
+    """
+    batch, height, width, channels = tensor_shape
+    predicted_probs = clamp_tensor(predicted_probs)
+    predicted_probs = -tf.math.log(predicted_probs)
+    predicted_probs = predicted_probs * true_probs
+    predicted_probs = tf.reshape(predicted_probs, (batch, height * width * channels))
+    return tf.reduce_sum(predicted_probs, axis=1)
 
 
+def compute_l1_error(true_values: tf.Tensor, predicted_values: tf.Tensor, tensor_shape: Tuple[int, int, int, int]) -> tf.Tensor:
+    """
+    Compute L1 error for regression targets
+    """
+    batch, height, width, channels = tensor_shape
+    diff = tf.reshape(true_values - predicted_values, (batch, height * width * channels))
+    diff = tf.abs(diff)
+    return tf.reduce_sum(diff, axis=1)
 
-def loc_loss(Ytrue, Ypred):
 
-	b = tf.shape(Ytrue)[0]
-	h = tf.shape(Ytrue)[1]
-	w = tf.shape(Ytrue)[2]
+# ---------------- Object Classification Loss -----------------
+def compute_object_classification_loss(true_labels: tf.Tensor, predicted_labels: tf.Tensor) -> tf.Tensor:
+    """
+    Compute object vs background classification loss
+    """
+    weight_object = 0.6
+    weight_background = 0.6
+    batch, height, width = tf.shape(true_labels)[0], tf.shape(true_labels)[1], tf.shape(true_labels)[2]
 
-	obj_probs_true = Ytrue[...,0]
-	affine_pred	= Ypred[...,1:]
-	pts_true 	= Ytrue[...,1:]
+    object_true = true_labels[..., 0]
+    object_pred = predicted_labels[..., 0]
 
-	affinex = tf.stack([tf.maximum(affine_pred[...,0],0.),affine_pred[...,1],affine_pred[...,2]],3)
-	affiney = tf.stack([affine_pred[...,3],tf.maximum(affine_pred[...,4],0.),affine_pred[...,5]],3)
+    background_true = 1.0 - object_true
+    background_pred = 1.0 - object_pred
 
-	v = 0.5
-	base = tf.stack([[[[-v,-v,1., v,-v,1., v,v,1., -v,v,1.]]]])
-	base = tf.tile(base,tf.stack([b,h,w,1]))
+    loss = weight_object * compute_log_prob_loss(object_true, object_pred, (batch, height, width, 1))
+    loss += weight_background * compute_log_prob_loss(background_true, background_pred, (batch, height, width, 1))
+    return loss
 
-	pts = tf.zeros((b,h,w,0))
 
-	for i in range(0, 12, 3):
-		row = base[...,i:(i+3)]
-		ptsx = tf.reduce_sum(affinex*row,3)
-		ptsy = tf.reduce_sum(affiney*row,3)
+# ---------------- Plate Localization Loss -----------------
+def compute_plate_localization_loss(true_map: tf.Tensor, predicted_map: tf.Tensor) -> tf.Tensor:
+    """
+    Compute L1 loss for predicted license plate corner points using affine transformation
+    """
+    batch, height, width = tf.shape(true_map)[0], tf.shape(true_map)[1], tf.shape(true_map)[2]
 
-		pts_xy = tf.stack([ptsx,ptsy],3)
-		# pts = (tf.concat([pts,pts_xy],3))
+    object_mask = true_map[..., 0]
+    affine_prediction = predicted_map[..., 1:]
+    true_points = true_map[..., 1:]
 
-	flags = tf.reshape(obj_probs_true, (b,h,w,1))
-	res   =  1.0*l1(pts_true*flags, pts*flags, (b, h, w, 4*2))
-	return res
+    # Affine decomposition
+    affine_x = tf.stack([tf.maximum(affine_prediction[..., 0], 0.0),
+                         affine_prediction[..., 1],
+                         affine_prediction[..., 2]], axis=3)
 
-def iwpodnet_loss(Ytrue, Ypred):
+    affine_y = tf.stack([affine_prediction[..., 3],
+                         tf.maximum(affine_prediction[..., 4], 0.0),
+                         affine_prediction[..., 5]], axis=3)
 
-	wclas = 0.6
-	wloc = 0.6
-	return wloc*loc_loss(Ytrue, Ypred) + wclas*clas_loss(Ytrue, Ypred)
+    # Base unit square for license plate corners
+    unit_square = tf.constant([[-0.5, -0.5, 1.0, 0.5, -0.5, 1.0, 0.5, 0.5, 1.0, -0.5, 0.5, 1.0]], dtype=tf.float32)
+    unit_square = tf.reshape(unit_square, (1, 1, 1, 12))
+    unit_square = tf.tile(unit_square, [batch, height, width, 1])
+
+    predicted_points_list = []
+
+    for i in range(0, 12, 3):
+        base_slice = unit_square[..., i:i + 3]
+        pred_x = tf.reduce_sum(affine_x * base_slice, axis=3)
+        pred_y = tf.reduce_sum(affine_y * base_slice, axis=3)
+        predicted_points_list.append(tf.stack([pred_x, pred_y], axis=3))
+
+    predicted_points = tf.concat(predicted_points_list, axis=3)
+
+    object_mask_reshaped = tf.reshape(object_mask, (batch, height, width, 1))
+    loss = compute_l1_error(true_points * object_mask_reshaped,
+                            predicted_points * object_mask_reshaped,
+                            (batch, height, width, predicted_points.shape[-1]))
+    return loss
+
+
+# ---------------- Complete WPOD-NET Loss -----------------
+def compute_wpodnet_total_loss(true_tensor: tf.Tensor, predicted_tensor: tf.Tensor) -> tf.Tensor:
+    """
+    Combine plate localization and classification loss with weights
+    """
+    weight_localization = 0.6
+    weight_classification = 0.6
+
+    total_loss = (weight_localization * compute_plate_localization_loss(true_tensor, predicted_tensor) +
+                  weight_classification * compute_object_classification_loss(true_tensor, predicted_tensor))
+    return total_loss

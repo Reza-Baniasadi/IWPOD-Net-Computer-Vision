@@ -1,126 +1,154 @@
 import numpy as np
-
 from os.path import isfile
 
 
-class Label:
+# ---------------- Label Class -----------------
+class BoundingBox:
+    """
+    Represents a labeled bounding box with optional probability.
+    Coordinates are stored as top-left and bottom-right points.
+    """
 
-        def __init__(self,cl=-1,tl=np.array([0.,0.]),br=np.array([0.,0.]),prob=None):
-            self.__tl 	= tl
-            self.__br 	= br
-            self.__cl 	= cl
-            self.__prob = prob
+    def __init__(self, class_id=-1, top_left=np.array([0., 0.]), bottom_right=np.array([0., 0.]), probability=None):
+        self._top_left = top_left
+        self._bottom_right = bottom_right
+        self._class_id = class_id
+        self._probability = probability
 
-        def __str__(self):
-            return 'Class: %d, top_left(x:%f,y:%f), bottom_right(x:%f,y:%f)' % (self.__cl, self.__tl[0], self.__tl[1], self.__br[0], self.__br[1])
-        def copy(self):
-            return Label(self.__cl,self.__tl,self.__br)
+    def __str__(self):
+        return f"Class: {self._class_id}, top_left(x:{self._top_left[0]},y:{self._top_left[1]}), bottom_right(x:{self._bottom_right[0]},y:{self._bottom_right[1]})"
 
-        def wh(self): return self.__br-self.__tl
+    def copy(self):
+        return BoundingBox(self._class_id, self._top_left.copy(), self._bottom_right.copy(), self._probability)
 
-        def cc(self): return self.__tl + self.wh()/2
+    # ----- Properties -----
+    def width_height(self):
+        return self._bottom_right - self._top_left
 
-        def tl(self): return self.__tl
+    def center(self):
+        return self._top_left + self.width_height() / 2
 
-        def br(self): return self.__br
+    def top_left(self):
+        return self._top_left
 
-        def tr(self): return np.array([self.__br[0],self.__tl[1]])
+    def bottom_right(self):
+        return self._bottom_right
 
-        def bl(self): return np.array([self.__tl[0],self.__br[1]])
+    def top_right(self):
+        return np.array([self._bottom_right[0], self._top_left[1]])
 
-        def cl(self): return self.__cl
+    def bottom_left(self):
+        return np.array([self._top_left[0], self._bottom_right[1]])
 
-        def area(self): return np.prod(self.wh())
+    def class_id(self):
+        return self._class_id
 
-        def prob(self): return self.__prob
+    def area(self):
+        return np.prod(self.width_height())
 
-        def set_class(self,cl):
-            self.__cl = cl
+    def probability(self):
+        return self._probability
 
-        def set_tl(self,tl):
-            self.__tl = tl
+    # ----- Setters -----
+    def set_class_id(self, class_id):
+        self._class_id = class_id
 
-        def set_br(self,br):
-            self.__br = br
+    def set_top_left(self, top_left):
+        self._top_left = top_left
 
-        def set_wh(self,wh):
-            cc = self.cc()
-            self.__tl = cc - .5*wh
-            self.__br = cc + .5*wh
+    def set_bottom_right(self, bottom_right):
+        self._bottom_right = bottom_right
 
-        def set_prob(self,prob):
-            self.__prob = prob
+    def set_width_height(self, wh):
+        c = self.center()
+        self._top_left = c - 0.5 * wh
+        self._bottom_right = c + 0.5 * wh
 
-        def lread(file_path):
+    def set_probability(self, prob):
+        self._probability = prob
 
-            if not isfile(file_path):
-                return []
+    # ----- File I/O -----
+    @staticmethod
+    def read_labels(file_path):
+        """
+        Read bounding boxes from file
+        """
+        if not isfile(file_path):
+            return []
 
-            objs = []
-            with open(file_path,'r') as fd:
-                for line in fd:
-                    v 		= line.strip().split()
-                    cl 		= int(v[0])
-                    ccx,ccy = float(v[1]),float(v[2])
-                    w,h 	= float(v[3]),float(v[4])
-                    prob 	= float(v[5]) if len(v) == 6 else None
+        boxes = []
+        with open(file_path, 'r') as f:
+            for line in f:
+                vals = line.strip().split()
+                class_id = int(vals[0])
+                ccx, ccy = float(vals[1]), float(vals[2])
+                w, h = float(vals[3]), float(vals[4])
+                prob = float(vals[5]) if len(vals) == 6 else None
+                center = np.array([ccx, ccy])
+                wh = np.array([w, h])
+                boxes.append(BoundingBox(class_id, center - wh / 2, center + wh / 2, prob))
+        return boxes
 
-                    cc 	= np.array([ccx,ccy])
-                    wh 	= np.array([w,h])
+    @staticmethod
+    def write_labels(file_path, labels, write_probs=True):
+        """
+        Write bounding boxes to file
+        """
+        with open(file_path, 'w') as f:
+            for label in labels:
+                cc = label.center()
+                wh = label.width_height()
+                class_id = label.class_id()
+                prob = label.probability()
+                if prob is not None and write_probs:
+                    f.write(f"{class_id} {cc[0]} {cc[1]} {wh[0]} {wh[1]} {prob}\n")
+                else:
+                    f.write(f"{class_id} {cc[0]} {cc[1]} {wh[0]} {wh[1]}\n")
 
-                    objs.append(cl,cc-wh/2,cc+wh/2,prob=prob)
 
-            return objs
-        
-        def lwrite(file_path,labels,write_probs=True):
-            with open(file_path,'w') as fd:
-                for l in labels:
-                    cc,wh,cl,prob = (l.cc(),l.wh(),l.cl(),l.prob())
-                    if prob != None and write_probs:
-                        fd.write('%d %f %f %f %f %f\n' % (cl,cc[0],cc[1],wh[0],wh[1],prob))
-                    else:
-                        fd.write('%d %f %f %f %f\n' % (cl,cc[0],cc[1],wh[0],wh[1]))
+# ---------------- Shape Class -----------------
+class Shape:
+    """
+    Represents a shape defined by points and optional text label.
+    """
 
-
-class Shape():
-
-    def __init__(self,pts=np.zeros((2,0)),max_sides=4,text=''):
-        self.pts = pts
+    def __init__(self, points=np.zeros((2, 0)), max_sides=4, text=''):
+        self.points = points
         self.max_sides = max_sides
         self.text = text
 
-    def isValid(self):
-        return self.pts.shape[1] > 2
+    def is_valid(self):
+        return self.points.shape[1] > 2
 
-    def write(self,fp):
-        fp.write('%d,' % self.pts.shape[1])
-        ptsarray = self.pts.flatten()
-        fp.write(''.join([('%f,' % value) for value in ptsarray]))
-        fp.write('%s,' % self.text)
-        fp.write('\n')
+    # ----- File I/O -----
+    def write(self, file_obj):
+        file_obj.write(f"{self.points.shape[1]},")
+        flat_pts = self.points.flatten()
+        file_obj.write(','.join([f"{v}" for v in flat_pts]))
+        file_obj.write(f",{self.text},\n")
 
-    def read(self,line):
-        data 		= line.strip().split(',')
-        ss 			= int(data[0])
-        values 		= data[1:(ss*2 + 1)]
-        text 		= data[(ss*2 + 1)] if len(data) >= (ss*2 + 2) else ''
-        self.pts 	= np.array([float(value) for value in values]).reshape((2,ss))
-        self.text   = text
-        
-    def readShapes(path):
+    def read(self, line):
+        data = line.strip().split(',')
+        num_pts = int(data[0])
+        values = data[1:(num_pts * 2 + 1)]
+        text = data[num_pts * 2 + 1] if len(data) >= num_pts * 2 + 2 else ''
+        self.points = np.array([float(v) for v in values]).reshape((2, num_pts))
+        self.text = text
+
+    @staticmethod
+    def read_shapes(file_path):
         shapes = []
-        with open(path) as fp:
-            for line in fp:
-                shape = Shape()
-                shape.read(line)
-                shapes.append(shape)
+        with open(file_path, 'r') as f:
+            for line in f:
+                s = Shape()
+                s.read(line)
+                shapes.append(s)
         return shapes
-    
-    def writeShapes(path,shapes):
+
+    @staticmethod
+    def write_shapes(file_path, shapes):
         if len(shapes):
-            with open(path,'w') as fp:
-                for shape in shapes:
-                    if shape.isValid():
-                        shape.write(fp)
- 
-    
+            with open(file_path, 'w') as f:
+                for s in shapes:
+                    if s.is_valid():
+                        s.write(f)
