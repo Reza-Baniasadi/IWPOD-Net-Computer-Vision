@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 from src.keras_utils import detect_lp
 from src.utils import im2single, nms_darkflow, adjust_pts
-from src.drawing_utils import draw_losangle
+from dr_utils import draw_losangle
 
 
 # ---------------- Vehicle Detection -----------------
