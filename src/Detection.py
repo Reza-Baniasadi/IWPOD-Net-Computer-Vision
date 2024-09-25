@@ -11,7 +11,7 @@ def detect_cars(yolo_model, image):
     Detect cars and buses in an image using YOLO
     """
     detections = yolo_model.return_predict(image)
-    cars = [det for det in detections if det['label'] in ['car', 'bus']]
+    cars = [det for det in detections if det['label'] in ['car']]
     return cars
 
 
